@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -43,11 +45,13 @@ public class User implements UserDetails {
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Collection<Role> roles;
+    private Set<Role> roles;
 
-    public User(String username, String email) {
+    public User(String username, String password, String email, Set<Role> roles) {
         this.username = username;
+        this.password = password;
         this.email = email;
+        this.roles = roles;
     }
 
     @PrePersist
@@ -78,5 +82,27 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        User user = (User) o;
+        return Objects.equals(id, user.id)
+                && Objects.equals(username, user.username)
+                && Objects.equals(password, user.password)
+                && Objects.equals(email, user.email)
+                && Objects.equals(createDate, user.createDate)
+                && Objects.equals(roles, user.roles);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, password, email, createDate, roles);
     }
 }
