@@ -7,18 +7,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.vovk.springboot.model.Role;
 import ru.vovk.springboot.model.User;
 import ru.vovk.springboot.repository.RoleRepository;
 import ru.vovk.springboot.repository.UserRepository;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Service
 @AllArgsConstructor
@@ -45,8 +45,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public void saveUser(User user) {
         if (user.getRoles() == null) {
-            Role role = roleRepository.findByName("ROLE_USER");
-            user.setRoles(Collections.singleton(role));
+            Role roleUser = roleRepository.findByName("ROLE_USER");
+            user.setRoles(singleton(roleUser));
+        } else {
+            user.setRoles(user.getRoles().stream()
+                    .map(role -> roleRepository.findById(role.getId()).orElseThrow())
+                    .collect(toSet()));
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
@@ -72,7 +76,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(

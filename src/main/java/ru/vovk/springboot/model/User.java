@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Cascade;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -13,6 +14,8 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
+
+import static org.hibernate.annotations.CascadeType.MERGE;
 
 @Entity
 @Table(name = "users")
@@ -40,7 +43,8 @@ public class User implements UserDetails {
     @Column(name = "create_date", updatable = false)
     private LocalDate createDate;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
+    @Cascade(MERGE)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
