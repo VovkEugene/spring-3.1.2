@@ -12,9 +12,7 @@ import ru.vovk.springboot.model.User;
 import ru.vovk.springboot.repository.RoleRepository;
 import ru.vovk.springboot.repository.UserRepository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
@@ -60,13 +58,23 @@ public class UserServiceImpl implements UserService {
     public void updateUser(Long id,
                            String username,
                            String email,
-                           String password) {
+                           String password,
+                           Set<Role> roles,
+                           boolean isRemoveRoles) {
         User maybeUser = getUserById(id)
                 .orElseThrow();
         maybeUser.setUsername(username);
         maybeUser.setPassword(passwordEncoder.encode(password));
         maybeUser.setEmail(email);
         maybeUser.setCreateDate(maybeUser.getCreateDate());
+
+        if (isRemoveRoles) {
+            maybeUser.setRoles(new HashSet<>());
+        }
+        Set<Role> newRoles = maybeUser.getRoles();
+        newRoles.addAll(roles);
+
+        maybeUser.setRoles(newRoles);
         userRepository.save(maybeUser);
     }
 
